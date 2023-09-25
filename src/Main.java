@@ -6,12 +6,19 @@ public class Main {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
 
-        System.out.print("Enter the number of destinations: ");
+        System.out.print("Enter the number of delivery destinations: ");
         int numberOfDestinations = scanner.nextInt();
 
         int[][] distances = new int[numberOfDestinations][numberOfDestinations];
         Map<Integer, String> invoiceData = new HashMap<>();
         List<int[]> coordinates = new ArrayList<>();
+        int[] company = new int[numberOfDestinations];
+
+        // Input distances from company
+        for (int start = 0; start < numberOfDestinations; start++) {
+            System.out.print("Enter distance from the company to the delivery destination " + (start + 1) + ": ");
+            company[start] = scanner.nextInt();
+        }
 
         // Input distances between destinations
         for (int start = 0; start < numberOfDestinations; start++) {
@@ -19,7 +26,7 @@ public class Main {
                 if (start == end) {
                     distances[start][end] = -1;
                 }else{
-                    System.out.print("Enter distance from destination " + (start + 1) + " to destination " + (end + 1) + ": ");
+                    System.out.print("Enter distance from delivery destination " + (start + 1) + " to delivery destination " + (end + 1) + ": ");
                     distances[start][end] = scanner.nextInt();
                 }
             }
@@ -27,23 +34,31 @@ public class Main {
 
         // Input invoice data for each destination
         for (int start = 0; start < numberOfDestinations; start++) {
-            System.out.print("Enter invoice data for destination " + (start + 1) + ": ");
+            System.out.print("Enter invoice data for delivery destination " + (start + 1) + ": ");
             String data = scanner.next();
             invoiceData.put(start, data);
         }
 
+        int closestIndex = getClosestIndex(company);
+
         // Calculate shortest path and store coordinates
-        List<Integer> visited = calculateShortestPath(distances, coordinates);
-        displayData(visited, invoiceData, coordinates);
+        List<Integer> visited = calculateShortestPath(distances, coordinates, closestIndex);
+        displayData(visited, invoiceData, coordinates, company);
 
         // Serialize data to a file
         String filename = "delivery_data.ser";
-        serializeData(visited, invoiceData, coordinates, distances, filename);
+        serializeData(visited, invoiceData, coordinates, filename);
 
         // Deserialize data from a file
         Map<Integer, String> deserializedData = deserializeData(filename);
         List<int[]> deserializedCoordinates = deserializeCoordinates(filename);
         List<Integer> deserializedRoute = deserializeRoute(filename);
+
+        //Getting outputs from file
+        System.out.println("\nDeserialized Route:");
+        for (int destination : deserializedRoute) {
+            System.out.println("Destination " + (destination + 1));
+        }
         System.out.println("\nDeserialized Route:");
         for (int destination : deserializedRoute) {
             System.out.println("Destination " + (destination + 1));
@@ -59,10 +74,23 @@ public class Main {
         }
     }
 
-    public static List<Integer> calculateShortestPath(int[][] distances, List<int[]> coordinates) {
+    // Finding the shortest destination from company
+    public static int getClosestIndex(int[] company){
+        int closestIndex = 0;
+        int closestValue = company[0];
+        for (int i = 0; i < company.length; i++) {
+            if (company[i] < closestValue) {
+                closestValue = company[i];
+                closestIndex = i;
+            }
+        }
+        return closestIndex;
+    }
+
+    public static List<Integer> calculateShortestPath(int[][] distances, List<int[]> coordinates, int closestIndex) {
         int numberOfDestinations = distances.length;
         List<Integer> visited = new ArrayList<>();
-        int currentDestination = 0; // Start from the first destination
+        int currentDestination = closestIndex; // Start from the first destination
 
         while (visited.size() < numberOfDestinations) {
             visited.add(currentDestination);
@@ -91,22 +119,22 @@ public class Main {
         return closestDestination;
     }
 
-    public static void displayData(List<Integer> route, Map<Integer, String> invoiceData, List<int[]> coordinates) {
+    public static void displayData(List<Integer> route, Map<Integer, String> invoiceData, List<int[]> coordinates, int[] company) {
         System.out.println("\nShortest Delivery Route:");
         for (int i = 0; i < route.size(); i++) {
             int destination = route.get(i);
             int[] coordinate = coordinates.get(i);
             System.out.println("Destination " + (destination + 1) + ": " + invoiceData.get(destination));
             System.out.println("Coordinates - X: " + coordinate[0] + ", Y: " + coordinate[1]);
+//            System.out.println(company[destination] + " miles from company");
         }
     }
 
-    public static void serializeData(List<Integer> visited, Map<Integer, String> invoiceData, List<int[]> coordinates, int[][] distances, String filename) {
+    public static void serializeData(List<Integer> visited, Map<Integer, String> invoiceData, List<int[]> coordinates, String filename) {
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(filename))) {
             oos.writeObject(visited);
             oos.writeObject(invoiceData);
             oos.writeObject(coordinates);
-            oos.writeObject(distances);
             System.out.println("\nData has been serialized to " + filename);
         } catch (IOException e) {
             e.printStackTrace();
