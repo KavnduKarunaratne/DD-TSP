@@ -59,10 +59,6 @@ public class Main {
         for (int destination : deserializedRoute) {
             System.out.println("Destination " + (destination + 1));
         }
-        System.out.println("\nDeserialized Route:");
-        for (int destination : deserializedRoute) {
-            System.out.println("Destination " + (destination + 1));
-        }
         System.out.println("\nDeserialized Invoice Data:");
         for (int destination : deserializedData.keySet()) {
             System.out.println("Destination " + (destination + 1) + ": " + deserializedData.get(destination));
