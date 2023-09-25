@@ -126,7 +126,6 @@ public class Main {
             int[] coordinate = coordinates.get(i);
             System.out.println("Destination " + (destination + 1) + ": " + invoiceData.get(destination));
             System.out.println("Coordinates - X: " + coordinate[0] + ", Y: " + coordinate[1]);
-//            System.out.println(company[destination] + " miles from company");
         }
     }
 
